@@ -17,6 +17,8 @@ const
   body_parser = require('body-parser'),
   app = express().use(body_parser.json()); // creates express http server
 
+const  PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
 
@@ -36,6 +38,19 @@ app.post('/webhook', (req, res) => {
       // will only ever contain one event, so we get index 0
       let webhook_event = entry.messaging[0];
       console.log(webhook_event);
+      
+      // Determine Senders Page scoped ID ......
+      let sender_psid = webhook_event.sender.id;
+      console.log('Sender PSID: ' + sender_psid);
+      
+      // Determine whether the event is a message or postback
+      // And then call appropriate function ........
+      if(webhook_event.message){
+        handleMessage(sender_psid,webhook_event.message);
+      }
+      else if(webhook_event.postback){
+        handlePostback(sender_psid,webhook_event.message);
+      }
       
     });
 
@@ -63,7 +78,7 @@ app.get('/webhook', (req, res) => {
   // Check if a token and mode were sent
   if (mode && token) {
   
-    // Check 1766550c4b5b9dc2b1da9592e9a4403ethe mode and token sent are correct
+    // Check 1766550c4b5b9dc2b1da9592e9a4403e the mode and token sent are correct
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
       
       // Respond with 200 OK and challenge token from the request
@@ -76,3 +91,69 @@ app.get('/webhook', (req, res) => {
     }
   }
 });
+
+// This function handles messages events ......
+function handleMessage(sender_psid, recieved_message){
+ 
+  let response;
+  
+  if(recieved_message.text){
+     
+    // Create a plaload for a basic text message .....
+    response = {
+     'text' : 'You Messaged: ' + recieved_message.text 
+    }
+    
+  }
+  else if(recieved_message.attachments){
+    
+    // Get the URL of message attachments ........
+    let attachment_url = recieved_message.attachments[0].payload.url;
+    
+  }
+  
+  callSendAPI(sender_psid, response);
+  
+}
+
+// Handles messaging_postbacks events ........
+function handlePostback(sender_psid, recieved_postback){
+  
+}
+
+// Sends response messages via the Send API
+function callSendAPI(sender_psid, response){
+  
+  // Construct the message body .......
+  let request_body = {
+    
+    'recipient': {
+      'id': sender_psid
+    },
+    'message' : response
+    
+  }
+  
+  request({
+    
+    'uri': 'https://graph.facebook.com/v2.6/me/messages',
+    'qs': { 'access_token': PAGE_ACCESS_TOKEN },
+    'method': 'POST',
+    'json': request_body
+  
+  }, (err, res, body) => {
+    
+    if(!err){
+       
+      console.log('message sent!');
+      
+    }
+    else{
+     
+      console.error('Unable to send message: ' + err );
+      
+    }
+    
+  });
+  
+}
