@@ -53,7 +53,7 @@ app.post('/webhook', (req, res) => {
 app.get('/webhook', (req, res) => {
   
   /** UPDATE YOUR VERIFY TOKEN **/
-  const VERIFY_TOKEN = "useless-coders-demo";
+  const VERIFY_TOKEN = "hello-this-is-gideon";
   
   // Parse params from the webhook verification request
   let mode = req.query['hub.mode'];
@@ -63,7 +63,7 @@ app.get('/webhook', (req, res) => {
   // Check if a token and mode were sent
   if (mode && token) {
   
-    // Check the mode and token sent are correct
+    // Check 1766550c4b5b9dc2b1da9592e9a4403ethe mode and token sent are correct
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
       
       // Respond with 200 OK and challenge token from the request
