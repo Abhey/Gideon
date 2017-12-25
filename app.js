@@ -49,7 +49,7 @@ app.post('/webhook', (req, res) => {
         handleMessage(sender_psid,webhook_event.message);
       }
       else if(webhook_event.postback){
-        handlePostback(sender_psid,webhook_event.message);
+        handlePostback(sender_psid,webhook_event.postback);
       }
       
     });
@@ -109,6 +109,34 @@ function handleMessage(sender_psid, recieved_message){
     
     // Get the URL of message attachments ........
     let attachment_url = recieved_message.attachments[0].payload.url;
+    response = {
+       
+      'attachment': {
+        
+        'type': 'template',
+        'payload': {
+          
+          'template_type': 'generic',
+          'elements': [{
+            'title': 'Is this the right picture?',
+            'subtitle': 'Tap a button to answer.',
+            'image_url': attachment_url,
+            'buttons': [
+              {
+               'type': 'postback',
+                'title': 'Yes!',
+                'payload': 'yes'
+              },
+              {
+               'type': 'postback',
+                'title': 'No!',
+                'payload': 'no'
+              }
+            ]
+          }]
+        }
+      }
+    }
     
   }
   
@@ -117,7 +145,17 @@ function handleMessage(sender_psid, recieved_message){
 }
 
 // Handles messaging_postbacks events ........
-function handlePostback(sender_psid, recieved_postback){
+function handlePostback(sender_psid, received_postback){
+  
+  let payload = received_postback.payload;
+  let response;
+  
+  if(payload === 'yes')
+    response = { 'text': 'Great :)' }
+  else if(payload === 'no')
+    response = { 'text': 'Oops try sending another image' }
+  
+  callSendAPI(sender_psid, response);
   
 }
 
